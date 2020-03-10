@@ -98,13 +98,20 @@ describe("Cyan", () => {
             model.its('a').apply((str) => str.length).expect().toBe(5)
         })
 
-        xit('each', () => {
-            // let y = 0;
-            // cyan.wrap([1,2,3]).each((x) => y+=x)
-            // cyan.expect(y).toBe(6)
+        it('each/map', () => {
+            cyan.wrap([1,2,3])
+                .each((x: number) => x*2)
+                .expect().toBe([2,4,6])
+
+            cyan.wrap([1, 2, 3])
+                .map((x: number) => x*2)
+                .expect().toBe([2,4,6])
         })
 
-        test.todo('seals')
+        it('index with its', () => {
+            cyan.wrap([5,10,15]).expect(0).toBe(5)
+            cyan.wrap([5,10,15]).expect(1).toBe(10)
+        })
     })
 
 })

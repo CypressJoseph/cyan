@@ -51,6 +51,7 @@ export namespace Cyan {
          *   cyan.wrap(2+2).unwrap() // => 4
          * ```
          */
+        public unwrap(): Subject;
         public unwrap<Subject extends NullSubject>(): never;
         public unwrap(): Subject {
             if (this.isEmpty) {
@@ -81,6 +82,32 @@ export namespace Cyan {
         }
 
         /**
+         * Pass elements of (array-like) subject to function, yielding result.
+         * @param {Function} fn Function to invoke
+         * @example ```
+         *   // apply square
+         *   cyan.wrap([1,2,3]).each((x) => x*x).unwrap() // [2,4,6]
+         * ```
+         */
+        public each<T, U>(fn: (t: T) => U): Box<U[]> {
+            let mapped = (this.unwrap() as unknown as Array<T>).map(it => fn(it))
+            return Box.with(mapped);
+        }
+
+        /**
+         * Pass elements of (array-like) subject to function, yielding result.
+         * @param {Function} fn Function to invoke
+         * @example ```
+         *   // apply square
+         *   cyan.wrap([1,2,3]).map((x) => x*x).unwrap() // [2,4,6]
+         * ```
+         */
+        public map<T, U>(fn: (t: T) => U): Box<U[]> {
+            let mapped = (this.unwrap() as unknown as Array<T>).map(it => fn(it))
+            return Box.with(mapped);
+        }
+
+        /**
          * Yield a named property on the subject.
          * @param {string} key Method name
          * @example ```
@@ -89,10 +116,11 @@ export namespace Cyan {
          * ```
          */
         public its<K extends Property<Subject>>(key: K): Box<Subject[K]>;
-        public its(key: string) {
+        public its(key: string | number) {
             let theProperty = this.entity[key];
             return Box.with(theProperty);
         }
+
         /**
          *
          * Yield a nested property on the subject.
@@ -163,7 +191,7 @@ export namespace Cyan {
                     )
                 }
             }
-            if (key && key !== undefined) {
+            if (key !== undefined) {
                 return new Expectation(this.its(key).unwrap());
             } else {
                 return new Expectation(this.unwrap());
