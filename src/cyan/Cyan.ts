@@ -258,5 +258,17 @@ export namespace Cyan {
             let theProperty = this.entity[key];
             return Expectation.with(theProperty);
         }
+
+        /**
+         * Pass subject to function, yielding result.
+         * @param {Function} fn Function to invoke
+         * @example ```
+         *   // apply square
+         *   cyan.wrap(2+2).apply((x) => x*x).unwrap() // 16
+         * ```
+         */
+        apply<U>(fn: (t: Subject) => U): Expectation<U> {
+            return Expectation.with(fn(this.unwrap()));
+        }
     }
 }

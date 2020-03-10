@@ -24,11 +24,17 @@ type State = {
 
 describe("Cyan", () => {
     describe("walkthrough", () => {
-        it('examples', () => {
+        describe('examples', () => {
+            it('docs', () => {
             cyan.expect(2+2).toBe(4)
             cyan.wrap({ my: { value: 'here' } })
                 .glom('my', 'value')
                 .expect().toBe('here')
+            })
+
+            it('readme', () => {
+                cyan.expect({ a: { b: 3 } }).glom('a', 'b').apply(x => x * x).toBe(9)
+            })
 
             // cyan.wrap({ my: { value: 'here' } })
             //     .glom('my.value')
