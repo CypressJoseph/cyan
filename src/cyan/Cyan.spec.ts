@@ -1,20 +1,6 @@
 import cyan from ".";
 import { Cyan } from "./Cyan";
 
-describe("Cyan", () => {
-    describe("Box", () => {
-        it('wrap/unwrap', () => {
-            expect(
-                cyan.wrap("hello").unwrap()
-            ).toBe("hello")
-
-            expect(
-                cyan.wrap(123).unwrap()
-            ).toBe(123)
-        })
-    });
-})
-
 type State = {
     a: string,
     fn: () => boolean,
@@ -35,10 +21,6 @@ describe("Cyan", () => {
             it('readme', () => {
                 cyan.expect({ a: { b: 3 } }).glom('a', 'b').apply(x => x * x).toBe(9)
             })
-
-            // cyan.wrap({ my: { value: 'here' } })
-            //     .glom('my.value')
-            //     .expect().toBe('here')
         })
     });
 
@@ -74,6 +56,16 @@ describe("Cyan", () => {
     })
 
     describe("Box", () => {
+        it('wrap/unwrap', () => {
+            expect(
+                cyan.wrap("hello").unwrap()
+            ).toBe("hello")
+
+            expect(
+                cyan.wrap(123).unwrap()
+            ).toBe(123)
+        })
+
         it('accesses a property', () => {
             model.expect('a').toBe('value')
             model.expect('a').not.toBe('not-value')
@@ -89,6 +81,8 @@ describe("Cyan", () => {
             model.expect().glom('hello', 'there', 'world').toBe(undefined)
             model.glom(...path).expect().toBe(undefined)
         })
+
+        // test.todo('deep access by path notation (sacrificing type-safety...)')
 
         it('invokes a method', () => {
             model.invokes('fn').expect().toBe(true)
