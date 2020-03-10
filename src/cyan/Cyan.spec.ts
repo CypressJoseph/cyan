@@ -12,10 +12,13 @@ describe("Cyan", () => {
     describe("walkthrough", () => {
         describe('examples', () => {
             it('docs', () => {
-            cyan.expect(2+2).toBe(4)
-            cyan.wrap({ my: { value: 'here' } })
-                .glom('my', 'value')
-                .expect().toBe('here')
+                cyan.expect(2 + 2).toBe(4)
+                cyan.wrap({ my: { value: 'here' } })
+                    .glom('my', 'value')
+                    .expect().toBe('here')
+
+                // unwrap without a subject is an error
+                expect(() => cyan.unwrap()).toThrow()
             })
 
             it('readme', () => {

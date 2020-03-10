@@ -23,13 +23,26 @@ export namespace Cyan {
      *  (Similar to `cy`, `$`, `_` to some degree etc)
      */
     export class Box<Subject> implements Container<Subject> {
-        klass = Box;
+        /**
+         * Assemble a new box, yielding the provided entity.
+         *
+         * @param entity the value to yield to the link
+         */
         static with<U>(entity: U) { return new Box<U>(entity); }
+
+        /**
+         * Get an empty box.
+         * Throw an error on yield if opened without wrapping anything else.
+         *
+         * @param entity the value to yield to the link
+         */
         static empty() { return new Box<{}>(new NullSubject()); }
         /**
          * Assemble a new Container around the entity.
          */
         constructor(protected entity: any) { }
+
+        private get isEmpty() { return this.entity instanceof NullSubject }
 
         /**
          * Resolve yielded subject.
@@ -38,7 +51,13 @@ export namespace Cyan {
          *   cyan.wrap(2+2).unwrap() // => 4
          * ```
          */
-        unwrap(): Subject { return this.entity; }
+        public unwrap<Subject extends NullSubject>(): never;
+        public unwrap(): Subject {
+            if (this.isEmpty) {
+                throw new Error("An empty container cannot be unwrapped.");
+            }
+            return this.entity;
+        }
 
         /**
          * Yield an arbitrary subject.
@@ -47,7 +66,7 @@ export namespace Cyan {
          *   cyan.wrap(2+2).unwrap() // => 4
          * ```
          */
-        wrap<T>(it: T): Box<T> { return Box.with(it); }
+        public wrap<T>(it: T): Box<T> { return Box.with(it); }
 
         /**
          * Pass subject to function, yielding result.
@@ -125,7 +144,6 @@ export namespace Cyan {
             return Box.with<R>(res);
         }
 
-        private get isEmpty() { return this.unwrap() instanceof NullSubject }
 
         /**
          * Claim an expectation on the yielded value.
@@ -157,8 +175,6 @@ export namespace Cyan {
      * _Expectation_ extends Box and adds support for verification (test cases).
      */
     export class Expectation<Subject> extends Box<Subject> {
-        klass = Expectation;
-
         /**
          * Assemble a new expectation, yielding the provided entity.
          * 
