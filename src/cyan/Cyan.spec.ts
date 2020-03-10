@@ -26,6 +26,13 @@ describe("Cyan", () => {
     describe("walkthrough", () => {
         it('examples', () => {
             cyan.expect(2+2).toBe(4)
+            cyan.wrap({ my: { value: 'here' } })
+                .glom('my', 'value')
+                .expect().toBe('here')
+
+            // cyan.wrap({ my: { value: 'here' } })
+            //     .glom('my.value')
+            //     .expect().toBe('here')
         })
     });
 
@@ -41,10 +48,21 @@ describe("Cyan", () => {
     describe("Expect", () => {
         it('is integrated into link', () => {
             model.expect('a').toBe('value')
+            model.expect().its('a').toBe('value')
             model.its('a').expect().toBe('value')
             model.expect().glom('a').toBe('value')
             model.glom('a').expect().toBe('value')
             model.expect().glom('hello', 'there').toBe({world: 'hi'})
+        })
+
+        it('throws', () => {
+            expect(
+                ()=>model.expect('a').toBe('not-value')
+            ).toThrow() //ExpectationFailedError)
+
+            expect(
+                () => cyan.expect()
+            ).toThrow() // EmptyExpect
         })
 
     })
@@ -53,7 +71,7 @@ describe("Cyan", () => {
         it('accesses a property', () => {
             model.expect('a').toBe('value')
             model.expect('a').not.toBe('not-value')
-            // model.expect().its('a').not.toBe('not-value')
+            model.expect().its('a').not.toBe('not-value')
         })
 
         it('deep accesses a property', () => {
@@ -68,9 +86,12 @@ describe("Cyan", () => {
 
         it('invokes a method', () => {
             model.invokes('fn').expect().toBe(true)
+            cyan.wrap(2+2).invokes('valueOf').expect().toBe(4)
+            cyan.wrap(2+2).invokes('toString').expect().toBe('4')
         })
 
         it('applies a function', () => {
+            cyan.wrap(2+2).apply(x => x*x).expect().toBe(16)
             model.its('a').apply((str) => str.length).expect().toBe(5)
         })
 

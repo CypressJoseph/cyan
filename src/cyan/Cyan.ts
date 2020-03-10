@@ -1,4 +1,5 @@
 import deepEquals from 'deep-equal';
+import chalk from 'chalk';
 
 /**
  * Cyan is a helper library/framework for 'monadic-link'-style APIs.
@@ -17,8 +18,6 @@ export namespace Cyan {
 
     class NullSubject {}
 
-    // type NullSubject = '__.cyan.no-subject.__'
-
     /**
      *  _Box_ implements an abstract monad-ish container pattern.
      *  (Similar to `cy`, `$`, `_` to some degree etc)
@@ -34,28 +33,42 @@ export namespace Cyan {
 
         /**
          * Resolve yielded subject.
+         * @example ```
+         *   // Open and shut
+         *   cyan.wrap(2+2).unwrap() // => 4
+         * ```
          */
         unwrap(): Subject { return this.entity; }
 
         /**
          * Yield an arbitrary subject.
+         * @example ```
+         *   // Open and shut
+         *   cyan.wrap(2+2).unwrap() // => 4
+         * ```
          */
         wrap<T>(it: T): Box<T> { return Box.with(it); }
+
         /**
          * Pass subject to function, yielding result.
          * @param {Function} fn Function to invoke
+         * @example ```
+         *   // apply square
+         *   cyan.wrap(2+2).apply((x) => x*x).unwrap() // 16
+         * ```
          */
         apply<U>(fn: (t: Subject) => U): Box<U> {
             return Box.with(fn(this.unwrap()));
         }
+
         /**
          * Yield a named property on the subject.
          * @param {string} key Method name
+         * @example ```
+         *   // Pluck `my.value` from the wrapped subject
+         *   cyan.wrap({ my: { value: 'here' }}).its('my').its('value').unwrap() // => 'here'
+         * ```
          */
-        // public its<K extends Property<Subject>, T extends Container>(
-        //     key: K,
-        //     maker?: ContainerMaker<T>
-        // ): Box<Subject[K]>
         public its<K extends Property<Subject>>(key: K): Box<Subject[K]>;
         public its(key: string) {
             let theProperty = this.entity[key];
@@ -66,9 +79,17 @@ export namespace Cyan {
          * Yield a nested property on the subject.
          *
          * @param {string} path Property path
-         * @example
-         *  // Yield obj.my.value
-         *  cy.wrap(obj).glom(['my', 'value'])
+         * @example ```
+         *  // Yield my.value
+         *  cyan.wrap({ my: { value: 'here' }})
+         *      .glom('my', 'value')
+         *      .unwrap() // => 'here'
+         * 
+         *  // Yield by path
+         *  cyan.wrap({ my: { value: 'here' }})
+         *      .glom('my.value')
+         *      .unwrap() // => 'here'
+         * ```
          */
         public glom<
             T extends Subject,
@@ -100,15 +121,29 @@ export namespace Cyan {
          */
         invokes<K extends keyof Subject, F extends Method<Subject, K>, R = ReturnType<F>>(key: K, ...args: any[]): Box<R> {
             let fn: F = this.entity[key];
-            let res: R = fn(...args) as unknown as R;
+            let res: R = fn.call(this.entity, ...args) as unknown as R;
             return Box.with<R>(res);
         }
+
+        private get isEmpty() { return this.unwrap() instanceof NullSubject }
+
+        /**
+         * Claim an expectation on the yielded value.
+         * An empty box 
+         * @param key? {string} The property name to yield from subject (optional)
+         */
         public expect<K extends Property<Subject>, P = Subject[K]>(key: K): Expectation<P>;
         public expect(): Expectation<Subject>;
         public expect<T, Subject extends NullSubject>(key?: T): Expectation<T>;
         public expect(key?: keyof Subject) {
-            if (key && this.unwrap() instanceof NullSubject) {
-                return new Expectation(key)
+            if (this.isEmpty) { // empty box
+                if (key) {
+                    return new Expectation(key)
+                } else {
+                    throw new Error(
+                        "Error: expect() called without arguments on empty box. Please provide an argument as the subject to verify against."
+                    )
+                }
             }
             if (key && key !== undefined) {
                 return new Expectation(this.its(key).unwrap());
@@ -123,6 +158,12 @@ export namespace Cyan {
      */
     export class Expectation<Subject> extends Box<Subject> {
         klass = Expectation;
+
+        /**
+         * Assemble a new expectation, yielding the provided entity.
+         * 
+         * @param entity the value to yield to the link
+         */
         static with<U>(entity: U): Expectation<U> {
             return new Expectation<U>(entity);
         }
@@ -131,8 +172,8 @@ export namespace Cyan {
          */
         constructor(entity: any, private negate?: boolean) {
             super(entity);
-            // console.log("Expectation constructor: " + JSON.stringify(entity));
         }
+
         /**
          * Boolean invert
          * Expect the opposite of the expectation
@@ -140,6 +181,7 @@ export namespace Cyan {
         public get not(): Expectation<Subject> {
             return new Expectation<Subject>(this.unwrap(), !this.negate);
         }
+
         /**
          * Expect subject to deep-equal value.
          * @arg expected {Subject} the expected value
@@ -149,15 +191,28 @@ export namespace Cyan {
          */
         public toBe(expected: Subject): void;
         public toBe(expected: any): void {
-            let left = this.unwrap();
-            let right = expected;
-            if (expected instanceof Box) {
-                right = expected.unwrap();
-            }
+            let actual = this.unwrap();
+            // let right = expected;
             this.test(
-                deepEquals(left, right),
-                left + " to be deep-equal to " + right
+                deepEquals(actual, expected),
+                this.errorDescription(
+                    JSON.stringify(expected),
+                    JSON.stringify(actual),
+                    "be deep equal"
+                )
             );
+        }
+
+        protected errorDescription(expected: string, actual: string, claim: string) {
+            return chalk.gray([
+                "Expected yielded value to ",
+                chalk.green(claim),
+                " to ",
+                chalk.blue(expected),
+                " but got ",
+                chalk.magenta(actual),
+                " instead."
+            ].join(''))
         }
 
         /**
@@ -166,9 +221,13 @@ export namespace Cyan {
          * @param message description of the expectation
          */
         private test(expr: boolean, message?: string) {
-            let result = this.applyNegation(expr);
-            if (!result) {
-                throw new Error("Verification failed." + message);
+            let passed = this.applyNegation(expr);
+            if (passed === false) {
+                throw new Error(
+                    chalk.red("Expectation failed!") +
+                    "\n\n" +
+                    message
+                );
             }
         }
         private applyNegation(value: boolean) {
@@ -194,9 +253,10 @@ export namespace Cyan {
             let destination = path.reduce(traverse, this.unwrap());
             return Expectation.with(destination);
         }
+
         public its<K extends Property<Subject>>(key: K): Expectation<Subject[K]> {
-            let prop = super.its(key) as Expectation<Subject[K]>;
-            return prop;
+            let theProperty = this.entity[key];
+            return Expectation.with(theProperty);
         }
     }
 }
