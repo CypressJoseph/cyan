@@ -98,6 +98,12 @@ describe("Cyan", () => {
             model.its('a').apply((str) => str.length).expect().toBe(5)
         })
 
+        xit('each', () => {
+            // let y = 0;
+            // cyan.wrap([1,2,3]).each((x) => y+=x)
+            // cyan.expect(y).toBe(6)
+        })
+
         test.todo('seals')
     })
 

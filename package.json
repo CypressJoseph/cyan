@@ -6,14 +6,20 @@
   "author": "Joseph Weissman <joseph@cypress.io>",
   "license": "MIT",
   "private": false,
+  "scripts": {
+    "pre:commit": "yarn test && yarn doc",
+    "doc": "typedoc --out docs src",
+    "test": "jest"
+  },
   "devDependencies": {
     "@types/jest": "^25.1.4",
     "jest": "^25.1.0",
     "ts-jest": "^25.2.1",
-    "typescript": "^3.8.3"
+    "typedoc": "^0.16.11",
+    "typescript": "^3.8.3",
+    "@types/deep-equal": "^1.0.1"
   },
   "dependencies": {
-    "@types/deep-equal": "^1.0.1",
     "chalk": "^3.0.0",
     "deep-equal": "^2.0.1"
   }
