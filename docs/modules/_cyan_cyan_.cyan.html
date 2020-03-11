@@ -84,7 +84,10 @@
 							<h3>Classes</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter"><a href="../classes/_cyan_cyan_.cyan.box.html" class="tsd-kind-icon">Box</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter"><a href="../classes/_cyan_cyan_.cyan.delayedexpectation.html" class="tsd-kind-icon">Delayed<wbr>Expectation</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module tsd-is-not-exported"><a href="../classes/_cyan_cyan_.cyan.engine.html" class="tsd-kind-icon">Engine</a></li>
 								<li class="tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter"><a href="../classes/_cyan_cyan_.cyan.expectation.html" class="tsd-kind-icon">Expectation</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter"><a href="../classes/_cyan_cyan_.cyan.giftbox.html" class="tsd-kind-icon">Gift<wbr>Box</a></li>
 								<li class="tsd-kind-class tsd-parent-kind-module tsd-is-not-exported"><a href="../classes/_cyan_cyan_.cyan.nullsubject.html" class="tsd-kind-icon">Null<wbr>Subject</a></li>
 							</ul>
 						</section>
@@ -100,6 +103,13 @@
 								<li class="tsd-kind-type-alias tsd-parent-kind-module tsd-has-type-parameter tsd-is-not-exported"><a href="_cyan_cyan_.cyan.html#a" class="tsd-kind-icon">A</a></li>
 								<li class="tsd-kind-type-alias tsd-parent-kind-module tsd-has-type-parameter tsd-is-not-exported"><a href="_cyan_cyan_.cyan.html#method" class="tsd-kind-icon">Method</a></li>
 								<li class="tsd-kind-type-alias tsd-parent-kind-module tsd-has-type-parameter tsd-is-not-exported"><a href="_cyan_cyan_.cyan.html#property" class="tsd-kind-icon">Property</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported"><a href="_cyan_cyan_.cyan.html#testresult" class="tsd-kind-icon">Test<wbr>Result</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Functions</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="_cyan_cyan_.cyan.html#sleep" class="tsd-kind-icon">sleep</a></li>
 							</ul>
 						</section>
 					</div>
@@ -113,7 +123,7 @@
 					<div class="tsd-signature tsd-kind-icon">A&lt;T&gt;<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">NonNullable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/CypressJoseph/cyan/blob/8476b2d/src/cyan/Cyan.ts#L10">cyan/Cyan.ts:10</a></li>
+							<li>Defined in <a href="https://github.com/CypressJoseph/cyan/blob/dc50764/src/cyan/Cyan.ts#L15">cyan/Cyan.ts:15</a></li>
 						</ul>
 					</aside>
 					<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -129,7 +139,7 @@
 					<div class="tsd-signature tsd-kind-icon">Method&lt;Subject, K&gt;<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span>args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">Subject</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">K</span><span class="tsd-signature-symbol">]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/CypressJoseph/cyan/blob/8476b2d/src/cyan/Cyan.ts#L9">cyan/Cyan.ts:9</a></li>
+							<li>Defined in <a href="https://github.com/CypressJoseph/cyan/blob/dc50764/src/cyan/Cyan.ts#L14">cyan/Cyan.ts:14</a></li>
 						</ul>
 					</aside>
 					<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -148,13 +158,60 @@
 					<div class="tsd-signature tsd-kind-icon">Property&lt;Subject&gt;<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">keyof </span><span class="tsd-signature-type">Subject</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/CypressJoseph/cyan/blob/8476b2d/src/cyan/Cyan.ts#L8">cyan/Cyan.ts:8</a></li>
+							<li>Defined in <a href="https://github.com/CypressJoseph/cyan/blob/dc50764/src/cyan/Cyan.ts#L13">cyan/Cyan.ts:13</a></li>
 						</ul>
 					</aside>
 					<h4 class="tsd-type-parameters-title">Type parameters</h4>
 					<ul class="tsd-type-parameters">
 						<li>
 							<h4>Subject</h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported">
+					<a name="testresult" class="tsd-anchor"></a>
+					<h3>Test<wbr>Result</h3>
+					<div class="tsd-signature tsd-kind-icon">Test<wbr>Result<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>actual<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">; </span>passed<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> }</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/CypressJoseph/cyan/blob/dc50764/src/cyan/Cyan.ts#L17">cyan/Cyan.ts:17</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter">
+								<h5>actual<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5>passed<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Functions</h2>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="sleep" class="tsd-anchor"></a>
+					<h3>sleep</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">sleep<span class="tsd-signature-symbol">(</span>milliseconds<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/CypressJoseph/cyan/blob/dc50764/src/cyan/Cyan.ts#L9">cyan/Cyan.ts:9</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>milliseconds: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -174,7 +231,16 @@
 						<a href="../classes/_cyan_cyan_.cyan.box.html" class="tsd-kind-icon">Box</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
+						<a href="../classes/_cyan_cyan_.cyan.delayedexpectation.html" class="tsd-kind-icon">Delayed<wbr>Expectation</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module tsd-is-not-exported">
+						<a href="../classes/_cyan_cyan_.cyan.engine.html" class="tsd-kind-icon">Engine</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
 						<a href="../classes/_cyan_cyan_.cyan.expectation.html" class="tsd-kind-icon">Expectation</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
+						<a href="../classes/_cyan_cyan_.cyan.giftbox.html" class="tsd-kind-icon">Gift<wbr>Box</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module tsd-is-not-exported">
 						<a href="../classes/_cyan_cyan_.cyan.nullsubject.html" class="tsd-kind-icon">Null<wbr>Subject</a>
@@ -190,6 +256,12 @@
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-has-type-parameter tsd-is-not-exported">
 						<a href="_cyan_cyan_.cyan.html#property" class="tsd-kind-icon">Property</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module tsd-is-not-exported">
+						<a href="_cyan_cyan_.cyan.html#testresult" class="tsd-kind-icon">Test<wbr>Result</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="_cyan_cyan_.cyan.html#sleep" class="tsd-kind-icon">sleep</a>
 					</li>
 				</ul>
 			</nav>

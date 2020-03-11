@@ -1,13 +1,24 @@
 import deepEquals from 'deep-equal';
 import chalk from 'chalk';
+import Timeout from 'await-timeout';
 
 /**
  * Cyan is a helper library/framework for 'monadic-link'-style APIs.
  */
 export namespace Cyan {
+    export function sleep(milliseconds: number) {
+        return new Promise(resolve => setTimeout(resolve, milliseconds));
+    }
+
     type Property<Subject> = keyof Subject;
     type Method<Subject, K extends Property<Subject>> = ((...args: any[]) => any) & Subject[K];
     type A<T> = NonNullable<T>;
+
+    type TestResult = {
+        passed: boolean,
+        actual: any,
+    }
+
     interface Container<Subject> {
         its<K extends Property<Subject>>(key: K): Container<Subject[K]>;
         glom<T extends Subject, P1 extends keyof A<T>>(prop1: P1): Container<A<T>[P1]>;
@@ -16,7 +27,39 @@ export namespace Cyan {
         glom(...path: string[]): Container<any>;
     }
 
+    // interface FutureContainer<Subject> { }
+
     class NullSubject {}
+
+    class Engine {
+        public async testSoftly<U, V>(
+            actual: () => U,
+            expected: () => V,
+            test: (u: U, v: V) => boolean,
+            delay: number = 100
+        ): Promise<TestResult> {
+            let result: TestResult = {
+                passed: false,
+                actual: undefined
+            }
+            let startedAt = new Date().getTime()
+            let elapsed = 0;
+            while (!result.passed) {
+                let now = new Date().getTime();
+                elapsed = now - startedAt;
+                let act = actual();
+                let exp = expected();
+                if (act instanceof Promise) {
+                    act = await act;
+                }
+                result.passed = test(act, exp);
+                result.actual = act;
+                // console.log("TEST SOFTLY -- act=" + act + ", exp=" + exp + "--- PASSED? " + result.passed);
+                if (!result.passed) { await sleep(delay); }
+            }
+            return result;
+        }
+    }
 
     /**
      *  _Box_ implements an abstract monad-ish container pattern.
@@ -28,15 +71,24 @@ export namespace Cyan {
          *
          * @param entity the value to yield to the link
          */
-        static with<U>(entity: U) { return new Box<U>(entity); }
+        static with<U>(entity: U): Box<U>;
+        static with<U>(entity: Promise<U>): GiftBox<U>;
+        static with(entity: any) {
+            if (entity instanceof Promise) {
+                return new GiftBox(entity);
+            } else {
+                return new Box(entity);
+            }
+        }
 
         /**
-         * Get an empty box.
+         * Build an empty box.
          * Throw an error on yield if opened without wrapping anything else.
          *
          * @param entity the value to yield to the link
          */
         static empty() { return new Box<{}>(new NullSubject()); }
+
         /**
          * Assemble a new Container around the entity.
          */
@@ -78,7 +130,8 @@ export namespace Cyan {
          * ```
          */
         apply<U>(fn: (t: Subject) => U): Box<U> {
-            return Box.with(fn(this.unwrap()));
+            let value = this.unwrap();
+            return Box.with(fn(value));
         }
 
         /**
@@ -103,8 +156,21 @@ export namespace Cyan {
          * ```
          */
         public map<T, U>(fn: (t: T) => U): Box<U[]> {
-            let mapped = (this.unwrap() as unknown as Array<T>).map(it => fn(it))
+            let mapped = (this.unwrap() as unknown as Array<T>).map(fn)
             return Box.with(mapped);
+        }
+
+        /**
+         * Filter elements of (array-like) subject by predicate, yielding result.
+         * @param {Function} fn Function to invoke
+         * @example ```
+         *   // apply square
+         *   cyan.wrap([1,2,3]).map((x) => x>2).unwrap() // [3]
+         * ```
+         */
+        public filter<T>(fn: (t: T) => boolean): Box<T[]> {
+            let picked = (this.unwrap() as unknown as Array<T>).filter(fn)
+            return Box.with(picked);
         }
 
         /**
@@ -172,19 +238,18 @@ export namespace Cyan {
             return Box.with<R>(res);
         }
 
-
         /**
-         * Claim an expectation on the yielded value.
-         * An empty box 
+         * Declare an expectation on the yielded value.
          * @param key? {string} The property name to yield from subject (optional)
          */
-        public expect<K extends Property<Subject>, P = Subject[K]>(key: K): Expectation<P>;
         public expect(): Expectation<Subject>;
+        public expect<T, Subject extends Promise<T>>(key?: T): DelayedExpectation<T>;
+        public expect<K extends Property<Subject>, P = Subject[K]>(key: K): Expectation<P>;
         public expect<T, Subject extends NullSubject>(key?: T): Expectation<T>;
         public expect(key?: keyof Subject) {
             if (this.isEmpty) { // empty box
                 if (key) {
-                    return new Expectation(key)
+                    return Expectation.with(key)
                 } else {
                     throw new Error(
                         "Error: expect() called without arguments on empty box. Please provide an argument as the subject to verify against."
@@ -192,11 +257,15 @@ export namespace Cyan {
                 }
             }
             if (key !== undefined) {
-                return new Expectation(this.its(key).unwrap());
+                return Expectation.with(this.its(key).unwrap());
             } else {
-                return new Expectation(this.unwrap());
+                return Expectation.with(this.unwrap());
             }
         }
+    }
+    
+    export class GiftBox<U> extends Box<U> {
+        // todo async versions of things?
     }
 
     /**
@@ -208,22 +277,31 @@ export namespace Cyan {
          * 
          * @param entity the value to yield to the link
          */
-        static with<U>(entity: U): Expectation<U> {
-            return new Expectation<U>(entity);
+        static with<U>(entity: U, negate?: boolean): Expectation<U>;
+        static with<U>(entity: Promise<U>, negate?: boolean): Expectation<U>;
+        static with(entity: any, negate?: boolean) {
+            if (entity instanceof Promise) {
+                return new DelayedExpectation(entity, negate);
+            } else {
+                return new Expectation(entity, negate);
+            }
         }
         /**
          * Assemble a new Box around the entity.
          */
-        constructor(entity: any, private negate?: boolean) {
+        constructor(entity: any, protected negate?: boolean) {
             super(entity);
         }
 
         /**
          * Boolean invert
          * Expect the opposite of the expectation
+         * @example
+         *   // 2 + 2 !== 5
+         *   cyan.expect(2+2).not.toBe(5)
          */
         public get not(): Expectation<Subject> {
-            return new Expectation<Subject>(this.unwrap(), !this.negate);
+            return Expectation.with(this.unwrap(), !this.negate);
         }
 
         /**
@@ -235,16 +313,12 @@ export namespace Cyan {
          */
         public toBe(expected: Subject): void;
         public toBe(expected: any): void {
+            let passed = false;
             let actual = this.unwrap();
-            // let right = expected;
-            this.test(
-                deepEquals(actual, expected),
-                this.errorDescription(
-                    JSON.stringify(expected),
-                    JSON.stringify(actual),
-                    "be deep equal"
-                )
-            );
+            passed = this.isTruthy(deepEquals(actual, expected))
+            if (passed === false) {
+                this.fail(expected, actual, "be deep equal")
+            }
         }
 
         protected errorDescription(expected: string, actual: string, claim: string) {
@@ -259,21 +333,24 @@ export namespace Cyan {
             ].join(''))
         }
 
+        protected fail(expected: any, actual: any, message: string) {
+            let err = this.errorDescription(
+                JSON.stringify(expected),
+                JSON.stringify(actual),
+                message
+            )
+            throw new Error(err);
+        }
+
         /**
          *
-         * @param expr the expression to verify
+         * @param value the expression to verify
          * @param message description of the expectation
          */
-        private test(expr: boolean, message?: string) {
-            let passed = this.applyNegation(expr);
-            if (passed === false) {
-                throw new Error(
-                    chalk.red("Expectation failed!") +
-                    "\n\n" +
-                    message
-                );
-            }
+        protected isTruthy(value: boolean): boolean {
+            return this.applyNegation(value);
         }
+
         private applyNegation(value: boolean) {
             if (this.negate) {
                 return !value;
@@ -282,6 +359,7 @@ export namespace Cyan {
                 return !!value;
             }
         }
+
         public glom<T extends Subject, P1 extends keyof A<T>>(prop1: P1): Expectation<A<T>[P1]>;
         public glom<T extends Subject, P1 extends keyof A<T>, P2 extends keyof A<A<T>[P1]>>(prop1: P1, prop2: P2): Expectation<A<A<T>[P1]>[P2]>;
         public glom<T extends Subject,
@@ -313,6 +391,30 @@ export namespace Cyan {
          */
         apply<U>(fn: (t: Subject) => U): Expectation<U> {
             return Expectation.with(fn(this.unwrap()));
+        }
+    }
+
+    export class DelayedExpectation<Subject> extends Expectation<Subject> {
+        public async toBe<T>(expected: T): Promise<void> {
+            let engine: Engine = new Engine();
+            let passed = false;
+            let actual = this.unwrap();
+            if (this.unwrap() instanceof Promise) {
+                let result: TestResult = await Timeout.wrap(engine.testSoftly(
+                    () => this.unwrap(),
+                    () => expected,
+                    (act: any, exp: any) => this.isTruthy(deepEquals(act, exp)),
+                ), 4000, "toBe timed out waiting for promise to resolve")
+                actual = result.actual;
+                passed = result.passed;
+            }
+            if (passed === false) {
+                this.fail(expected, actual, 'be deep equal')
+            }
+        }
+
+        public get not(): DelayedExpectation<Subject> {
+            return new DelayedExpectation(this.unwrap(), !this.negate);
         }
     }
 }

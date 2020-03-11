@@ -13,12 +13,15 @@ describe("Cyan", () => {
         describe('examples', () => {
             it('docs', () => {
                 cyan.expect(2 + 2).toBe(4)
+                cyan.expect(2 + 2).not.toBe(5)
+
                 cyan.wrap({ my: { value: 'here' } })
                     .glom('my', 'value')
                     .expect().toBe('here')
 
                 // unwrap without a subject is an error
                 expect(() => cyan.unwrap()).toThrow()
+
             })
 
             it('readme', () => {
@@ -46,11 +49,14 @@ describe("Cyan", () => {
             model.expect().glom('hello', 'there').toBe({world: 'hi'})
         })
 
-        it('throws', () => {
+        it('throws on error', () => {
             expect(
-                ()=>model.expect('a').toBe('not-value')
-            ).toThrow() //ExpectationFailedError)
+                () => model.expect('a').toBe('not-value')
+            ).toThrow()
+            // done()
+        });
 
+        it('throw on empty expect', () => {
             expect(
                 () => cyan.expect()
             ).toThrow() // EmptyExpect
@@ -112,6 +118,36 @@ describe("Cyan", () => {
             cyan.wrap([5,10,15]).expect(0).toBe(5)
             cyan.wrap([5,10,15]).expect(1).toBe(10)
         })
+
+        it('filter', () => {
+            cyan.wrap([1,2,3])
+                .filter((x: number) => x > 2)
+                .expect().its(0).toBe(3)
+        })
     })
 
+    describe("retrying", () => {
+        it('retries promise-based assertions until they pass or timeout', async done => {
+            let promiseTwo: Promise<number> = new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    console.log("RESOLVING PROMISE")
+                    resolve(2)
+                }, 2000)
+            })
+            let promiseThree: Promise<number> = new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    console.log("RESOLVING PROMISE")
+                    resolve(3)
+                }, 1000)
+            })
+
+            console.log("EXPECT to BE 2")
+            await cyan.expect(promiseTwo).not.toBe(1) //.then(done) //() => done())
+            await cyan.expect(promiseTwo).toBe(2) //.then(done) //() => done())
+
+            console.log("EXPECT to BE 3")
+            await cyan.expect(promiseThree).toBe(3) //.then(done) //.then(done) //() => done())
+            done()
+        })
+    })
 })
